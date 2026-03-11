@@ -1,0 +1,9 @@
+idf_component_register(
+    SRCS
+        "src/KLineKWP1281Lib_ESP32.cpp"
+    INCLUDE_DIRS
+        "src"
+    REQUIRES
+        driver
+        esp_timer
+)

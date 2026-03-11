@@ -1,0 +1,11 @@
+build/
+.vscode/
+managed_components/
+
+*.bin
+*.elf
+*.map
+compile_commands.json
+
+_tmp_*/
+*.zip

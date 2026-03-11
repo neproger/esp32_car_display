@@ -1,0 +1,21 @@
+idf_component_register(
+    SRCS
+        "app_main.cpp"
+        "display_service.cpp"
+        "kline_service.cpp"
+        "kline_uart.cpp"
+        "metric_catalog.cpp"
+        "waveshare_147.cpp"
+        "lcd_panel_st7789t.c"
+        "lvgl_port.cpp"
+        "state.cpp"
+        "ui_service.cpp"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        esp_lcd
+        driver
+        esp_timer
+        lvgl
+        kwp1281
+)
