@@ -21,6 +21,7 @@
 #define WS147_PIN_LCD_DC 15
 #define WS147_PIN_LCD_RST 21
 #define WS147_PIN_BK_LIGHT 22
+#define WS147_PIN_RGB_LED 8
 #define WS147_LCD_CMD_BITS 8
 #define WS147_LCD_PARAM_BITS 8
 
@@ -85,6 +86,19 @@ static esp_err_t ws147_backlight_init(void)
     return ESP_OK;
 }
 
+static esp_err_t ws147_rgb_led_off(void)
+{
+    gpio_config_t rgb_gpio_config = {};
+    rgb_gpio_config.pin_bit_mask = 1ULL << WS147_PIN_RGB_LED;
+    rgb_gpio_config.mode = GPIO_MODE_OUTPUT;
+    rgb_gpio_config.pull_up_en = GPIO_PULLUP_DISABLE;
+    rgb_gpio_config.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    rgb_gpio_config.intr_type = GPIO_INTR_DISABLE;
+    ESP_RETURN_ON_ERROR(gpio_config(&rgb_gpio_config), TAG, "configure rgb led pin failed");
+    ESP_RETURN_ON_ERROR(gpio_set_level((gpio_num_t)WS147_PIN_RGB_LED, 0), TAG, "set rgb led off failed");
+    return ESP_OK;
+}
+
 esp_err_t waveshare_147_set_backlight(uint8_t percent)
 {
     if (!s_backlight_ready) {
@@ -143,8 +157,9 @@ esp_err_t waveshare_147_init(void)
     ESP_RETURN_ON_ERROR(esp_lcd_panel_mirror(s_panel_handle, true, false), TAG, "set default orientation failed");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_disp_on_off(s_panel_handle, true), TAG, "display on failed");
 
+    ESP_RETURN_ON_ERROR(ws147_rgb_led_off(), TAG, "disable rgb led failed");
     ESP_RETURN_ON_ERROR(ws147_backlight_init(), TAG, "backlight init failed");
-    ESP_RETURN_ON_ERROR(waveshare_147_set_backlight(75), TAG, "set backlight failed");
+    ESP_RETURN_ON_ERROR(waveshare_147_set_backlight(50), TAG, "set backlight failed");
 
     ESP_LOGI(TAG, "Waveshare 1.47 LCD initialized");
     return ESP_OK;

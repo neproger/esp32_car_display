@@ -1,6 +1,7 @@
 idf_component_register(
     SRCS
         "app_main.cpp"
+        "device_service.cpp"
         "display_service.cpp"
         "kline_service.cpp"
         "kline_uart.cpp"
@@ -15,6 +16,7 @@ idf_component_register(
     REQUIRES
         esp_lcd
         driver
+        esp_driver_tsens
         esp_timer
         lvgl
         kwp1281

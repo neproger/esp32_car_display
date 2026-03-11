@@ -12,6 +12,7 @@ namespace {
 lv_obj_t *s_title = nullptr;
 lv_obj_t *s_value = nullptr;
 lv_obj_t *s_status = nullptr;
+lv_obj_t *s_cpu_temp = nullptr;
 
 void ensure_ui_created()
 {
@@ -39,6 +40,11 @@ void ensure_ui_created()
     lv_obj_set_style_text_color(s_status, lv_palette_lighten(LV_PALETTE_GREY, 2), LV_PART_MAIN);
     lv_obj_set_style_text_font(s_status, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_align(s_status, LV_ALIGN_BOTTOM_MID, 0, -18);
+
+    s_cpu_temp = lv_label_create(screen);
+    lv_obj_set_style_text_color(s_cpu_temp, lv_palette_lighten(LV_PALETTE_ORANGE, 1), LV_PART_MAIN);
+    lv_obj_set_style_text_font(s_cpu_temp, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_align(s_cpu_temp, LV_ALIGN_BOTTOM_RIGHT, -16, -48);
 }
 
 } // namespace
@@ -59,11 +65,10 @@ void ui_service_refresh(AppState &state)
     snprintf(
         status_text,
         sizeof(status_text),
-        "k:%s m:%02X b:%lu f:%lu",
+        "K %s  %02X  %lu",
         state.kline.status,
         state.kline.active_module,
-        static_cast<unsigned long>(state.kline.baud),
-        static_cast<unsigned long>(state.ui.frame_counter));
+        static_cast<unsigned long>(state.kline.baud));
     lv_label_set_text(s_status, status_text);
 
     char title_text[64];
@@ -94,4 +99,12 @@ void ui_service_refresh(AppState &state)
         snprintf(value_text, sizeof(value_text), "--");
     }
     lv_label_set_text(s_value, value_text);
+
+    char cpu_temp_text[32];
+    if (state.device.cpu_temp_valid) {
+        snprintf(cpu_temp_text, sizeof(cpu_temp_text), "CPU %.1f C", state.device.cpu_temp_c);
+    } else {
+        snprintf(cpu_temp_text, sizeof(cpu_temp_text), "CPU --");
+    }
+    lv_label_set_text(s_cpu_temp, cpu_temp_text);
 }

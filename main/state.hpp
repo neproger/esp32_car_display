@@ -39,6 +39,11 @@ struct UiState {
     uint32_t frame_counter = 0;
 };
 
+struct DeviceState {
+    bool cpu_temp_valid = false;
+    float cpu_temp_c = 0.0f;
+};
+
 struct KlineSessionState {
     bool transport_ready = false;
     bool connected = false;
@@ -54,6 +59,7 @@ constexpr size_t kMetricCapacity = 8;
 
 struct AppState {
     UiState ui;
+    DeviceState device;
     KlineSessionState kline;
     MetricReading metrics[kMetricCapacity];
 };
