@@ -1,51 +1,74 @@
 # ESP32 Car Display
 
-Base ESP-IDF project for `Waveshare ESP32-C6 LCD 1.47"`.
+Проект автомобильного дисплея на `ESP32-C6` и `Waveshare ESP32-C6 LCD 1.47"` для вывода диагностических данных по `K-line` (`KWP1281`).
 
-Current status:
-- Added a minimal LCD bring-up for ST7789T (SPI) using ESP-IDF `esp_lcd`.
-- Added backlight PWM control.
-- Added LVGL integration and test UI:
-  - fixed UI orientation is landscape (`320x172`)
-  - red border around full active area
-  - centered text (`CENTER TEST`)
-- Added local `kwp1281` ESP-IDF component based on `KLineKWP1281Lib_ESP32`
-- Split app structure into layers:
+Основная идея проекта:
+- подключаться к блоку управления автомобиля по `K-line`
+- читать нужные диагностические значения
+- хранить их в общем `state`
+- выводить текущее значение на встроенный дисплей
+
+Сейчас в проекте уже работает:
+- инициализация дисплея `ST7789T` через `ESP-IDF esp_lcd`
+- фиксированная альбомная ориентация интерфейса `320x172`
+- интеграция `LVGL`
+- локальный компонент `kwp1281` на базе `KLineKWP1281Lib_ESP32`, адаптированный под `ESP-IDF`
+- базовая архитектура по слоям:
   - `display`
   - `ui`
   - `state`
-  - `kline_uart` + `kwp1281`
+  - `kline_uart`
+  - `kwp1281`
+- чтение одной тестовой метрики из блока `0x01`
 
-## Display config (from Waveshare official demo)
+## Архитектура
 
-- Resolution: `172x320`
-- Controller: `ST7789T`
-- SPI host: `SPI2_HOST`
-- Pins:
+- `display`: низкоуровневая работа с LCD и `LVGL`
+- `ui`: создание и обновление интерфейса
+- `state`: общее состояние приложения и кэш считанных значений
+- `kline_uart`: транспортный слой UART для `K-line`
+- `kwp1281`: протокольный слой диагностики
+
+## Конфигурация дисплея
+
+Параметры платы взяты из официального demo `Waveshare`.
+
+- Контроллер: `ST7789T`
+- Физическое разрешение: `172x320`
+- Режим интерфейса в проекте: `320x172`, landscape
+- `SPI host`: `SPI2_HOST`
+- Пины LCD:
   - `SCLK=7`
   - `MOSI=6`
   - `CS=14`
   - `DC=15`
   - `RST=21`
   - `BL=22`
-- Frame offset: `X=34`, `Y=0`
-- Fixed UI mode used by this project:
-  - hardware rotation: landscape
-  - LVGL resolution: `320x172`
-  - flush offset: `X=0`, `Y=34`
 
-## Build and flash
+## Конфигурация K-line
 
-1. Open ESP-IDF shell.
-2. Configure target:
+Сейчас в проекте зафиксированы:
+- `TX=GPIO16`
+- `RX=GPIO17`
+
+Подключение внешнего трансивера `L9637D` описано в [DOCS/l9637_obd_wiring.md](C:\Users\Engineer0\esp32_car_display\DOCS\l9637_obd_wiring.md).
+
+## Сборка и прошивка
+
+1. Открыть shell с активированным `ESP-IDF`.
+2. Выбрать target:
    - `idf.py set-target esp32c6`
-3. Build:
+3. Собрать проект:
    - `idf.py build`
-4. Flash and monitor:
+4. Прошить и открыть монитор:
    - `idf.py -p <PORT> flash monitor`
 
-If LVGL is initialized correctly, you should see a red border and centered text.
+## Текущее состояние
 
-## Next step
+Проект находится на стадии базовой интеграции:
+- дисплей поднят
+- `LVGL` работает
+- библиотека `KWP1281` портирована в `ESP-IDF`
+- чтение первой метрики уже заведено
 
-Replace placeholder K-line pins/config with the real interface wiring and start querying a control module.
+Дальше проект будет расширяться через каталог метрик: для каждой метрики задаются блок, группа и индекс значения, после чего она может быть выведена на экран.
