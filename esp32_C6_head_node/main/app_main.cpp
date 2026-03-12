@@ -16,6 +16,7 @@ extern "C" void app_main(void)
 {
     AppState &state = app_state();
 
+    esp_log_level_set("KWP", ESP_LOG_NONE);
     ESP_LOGI(TAG, "Booting application...");
     ESP_ERROR_CHECK(ble_service_init());
     ESP_ERROR_CHECK(device_service_init(state));

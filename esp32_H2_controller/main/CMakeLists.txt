@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS
+        "app_main.cpp"
+        "ble_central_service.cpp"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        bt
+        driver
+        esp_timer
+        led_strip
+        nvs_flash
+)

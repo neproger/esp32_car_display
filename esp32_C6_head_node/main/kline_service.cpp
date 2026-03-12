@@ -48,11 +48,52 @@ void clear_metric_reading(MetricReading &reading)
     reading.text[0] = '\0';
 }
 
+void log_metric_update_if_changed(const MetricSpec &metric, const MetricReading &previous, const MetricReading &current)
+{
+    if (!current.valid) {
+        return;
+    }
+
+    if (current.type != previous.type || previous.valid != current.valid) {
+        // fall through to log below
+    } else if (current.type == MetricValueType::Numeric) {
+        if (strcmp(previous.units, current.units) == 0 && previous.numeric_value == current.numeric_value) {
+            return;
+        }
+    } else if (current.type == MetricValueType::Text) {
+        if (strcmp(previous.text, current.text) == 0) {
+            return;
+        }
+    } else {
+        return;
+    }
+
+    if (current.type == MetricValueType::Numeric) {
+        ESP_LOGI(
+            TAG,
+            "ECU %02X grp %02X idx %u -> %.1f %s",
+            metric.module,
+            metric.group,
+            metric.measurement_index,
+            current.numeric_value,
+            current.units);
+    } else if (current.type == MetricValueType::Text) {
+        ESP_LOGI(
+            TAG,
+            "ECU %02X grp %02X idx %u -> %s",
+            metric.module,
+            metric.group,
+            metric.measurement_index,
+            current.text);
+    }
+}
+
 void update_metric_reading(const MetricSpec &metric)
 {
     uint8_t amount_of_measurements = 0;
     uint8_t measurement_buffer[64] = {};
     MetricReading &reading = s_state->metrics[s_state->ui.selected_metric];
+    const MetricReading previous = reading;
 
     const auto group_status = s_kwp.readGroup(amount_of_measurements, metric.group, measurement_buffer, sizeof(measurement_buffer));
     if (group_status != KLineKWP1281Lib::SUCCESS) {
@@ -106,6 +147,8 @@ void update_metric_reading(const MetricSpec &metric)
         clear_metric_reading(reading);
         break;
     }
+
+    log_metric_update_if_changed(metric, previous, reading);
 }
 
 void set_kline_status(const char *status)
@@ -130,7 +173,6 @@ void kline_worker_task(void *arg)
     while (true) {
         for (size_t i = 0; i < sizeof(kBaudCandidates) / sizeof(kBaudCandidates[0]); i++) {
             const unsigned long baud = kBaudCandidates[i];
-            ESP_LOGI(TAG, "Attempt connect: module=0x%02X baud=%lu", metric.module, baud);
             set_kline_status("connecting");
 
             const auto status = s_kwp.attemptConnect(metric.module, baud, false);

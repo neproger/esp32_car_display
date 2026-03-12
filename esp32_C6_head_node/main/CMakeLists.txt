@@ -21,6 +21,7 @@ idf_component_register(
         esp_timer
         lvgl
         bt
+        led_strip
         nvs_flash
         kwp1281
 )
