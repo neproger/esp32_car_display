@@ -1,6 +1,7 @@
 idf_component_register(
     SRCS
         "app_main.cpp"
+        "ble_service.cpp"
         "device_service.cpp"
         "display_service.cpp"
         "kline_service.cpp"
@@ -19,5 +20,7 @@ idf_component_register(
         esp_driver_tsens
         esp_timer
         lvgl
+        bt
+        nvs_flash
         kwp1281
 )

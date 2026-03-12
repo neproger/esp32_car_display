@@ -5,6 +5,9 @@
 
 enum class MetricLayout : uint8_t {
     Temperature,
+    Speed,
+    Rpm,
+    Voltage,
     Numeric,
     Text,
 };
@@ -15,10 +18,28 @@ enum class MetricValueType : uint8_t {
     Text,
 };
 
+enum class MetricFormat : uint8_t {
+    TemperatureC,
+    SpeedKmh,
+    Rpm,
+    Voltage,
+    Generic,
+    Text,
+};
+
+enum class MetricComponentType : uint8_t {
+    NumericWithSuffix,
+    TextOnly,
+};
+
 struct MetricSpec {
     const char *id;
     const char *title;
     MetricLayout layout;
+    MetricFormat format;
+    MetricComponentType component;
+    uint8_t decimals;
+    const char *suffix;
     uint8_t module;
     uint8_t group;
     uint8_t measurement_index;

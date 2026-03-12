@@ -18,7 +18,11 @@ uint32_t s_last_poll_ms = 0;
 
 esp_err_t device_service_init(AppState &state)
 {
-    temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
+    temperature_sensor_config_t temp_sensor_config = {};
+    temp_sensor_config.range_min = 10;
+    temp_sensor_config.range_max = 80;
+    temp_sensor_config.clk_src = TEMPERATURE_SENSOR_CLK_SRC_DEFAULT;
+    temp_sensor_config.flags.allow_pd = 0;
     ESP_RETURN_ON_ERROR(temperature_sensor_install(&temp_sensor_config, &s_temp_sensor), TAG, "temperature_sensor_install failed");
     ESP_RETURN_ON_ERROR(temperature_sensor_enable(s_temp_sensor), TAG, "temperature_sensor_enable failed");
 

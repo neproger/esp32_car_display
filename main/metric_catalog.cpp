@@ -1,12 +1,23 @@
 #include "metric_catalog.hpp"
 
-namespace {
+namespace
+{
+    constexpr MetricSpec kMetricCatalog[] = {
+        {
+            "engine_temp",
+            "TEMP",
+            MetricLayout::Temperature,
+            MetricFormat::TemperatureC,
+            MetricComponentType::NumericWithSuffix,
+            0,
+            "°C",
+            0x01,
+            0x04,
+            0,
+        },
+    };
 
-constexpr MetricSpec kMetricCatalog[] = {
-    {"engine_temp", "TEMP", MetricLayout::Temperature, 0x01, 0x04, 0},
-};
-
-} // namespace
+}
 
 const MetricSpec *metric_catalog()
 {
