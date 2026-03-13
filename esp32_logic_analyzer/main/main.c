@@ -59,12 +59,12 @@ void app_main(void)
     static const sniff_port_t port26 = {
         .uart_num = UART_NUM_1,
         .rx_pin = 26,
-        .label = "GPIO26",
+        .label = "GPIO26 [Golf 3]",
     };
     static const sniff_port_t port27 = {
         .uart_num = UART_NUM_2,
         .rx_pin = 27,
-        .label = "GPIO27",
+        .label = "GPIO27 [ESP32 C6]",
     };
 
     sniff_uart_init(&port26);
