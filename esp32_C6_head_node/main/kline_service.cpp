@@ -34,7 +34,7 @@ KLineKWP1281Lib s_kwp(
     kline_uart_send,
     kline_uart_receive,
     static_cast<uint8_t>(kDefaultKlineConfig.tx_pin),
-    true);
+    false);
 
 AppState *s_state = nullptr;
 

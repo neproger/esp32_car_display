@@ -13,5 +13,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=c:\\Users\\ASUS\\espidf\\projects\\esp32_car_display\\esp32_logic_analyzer\\build"
-  ]
+  ],
+  "idf.flashType": "UART"
 }

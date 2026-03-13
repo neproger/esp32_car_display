@@ -36,8 +36,6 @@ static const ble_uuid_t *kResponseCharUuid = &kResponseCharUuid128.u;
 static constexpr gpio_num_t kStatusLedPin = GPIO_NUM_8;
 static constexpr int64_t kStatusLedPulseUs = 80 * 1000;
 static uint8_t s_own_addr_type = BLE_OWN_ADDR_PUBLIC;
-static uint8_t s_adv_instance = 0;
-static bool s_adv_configured = false;
 static uint16_t s_command_val_handle = 0;
 static uint16_t s_response_val_handle = 0;
 static esp_timer_handle_t s_led_off_timer = nullptr;
@@ -187,7 +185,7 @@ static const struct ble_gatt_svc_def kGattServices[] = {
     },
 };
 
-static struct os_mbuf *ble_make_adv_data()
+static int ble_set_adv_fields()
 {
     struct ble_hs_adv_fields fields;
     memset(&fields, 0, sizeof(fields));
@@ -195,19 +193,7 @@ static struct os_mbuf *ble_make_adv_data()
     fields.name = reinterpret_cast<const uint8_t *>(kBleDeviceName);
     fields.name_len = strlen(kBleDeviceName);
     fields.name_is_complete = 1;
-
-    struct os_mbuf *data = os_msys_get_pkthdr(BLE_HS_ADV_MAX_SZ, 0);
-    if (data == nullptr) {
-        return nullptr;
-    }
-
-    const int rc = ble_hs_adv_set_fields_mbuf(&fields, data);
-    if (rc != 0) {
-        os_mbuf_free_chain(data);
-        return nullptr;
-    }
-
-    return data;
+    return ble_gap_adv_set_fields(&fields);
 }
 
 static void ble_on_reset(int reason)
@@ -248,50 +234,24 @@ static void ble_on_sync(void)
 
 static void ble_advertise_start()
 {
-    int rc = 0;
-    if (!s_adv_configured) {
-        struct ble_gap_ext_adv_params params;
-        memset(&params, 0, sizeof(params));
-
-        params.connectable = 1;
-        params.scannable = 0;
-        params.legacy_pdu = 0;
-        params.own_addr_type = s_own_addr_type;
-        params.primary_phy = BLE_HCI_LE_PHY_CODED;
-        params.secondary_phy = BLE_HCI_LE_PHY_CODED;
-        params.sid = 0;
-        params.itvl_min = BLE_GAP_ADV_FAST_INTERVAL1_MIN;
-        params.itvl_max = BLE_GAP_ADV_FAST_INTERVAL1_MAX;
-
-        rc = ble_gap_ext_adv_configure(s_adv_instance, &params, nullptr, ble_gap_event_cb, nullptr);
-        if (rc != 0) {
-            ESP_LOGE(TAG, "ble_gap_ext_adv_configure failed: %d", rc);
-            return;
-        }
-
-        struct os_mbuf *data = ble_make_adv_data();
-        if (data == nullptr) {
-            ESP_LOGE(TAG, "ble_make_adv_data failed");
-            return;
-        }
-
-        rc = ble_gap_ext_adv_set_data(s_adv_instance, data);
-        if (rc != 0) {
-            ESP_LOGE(TAG, "ble_gap_ext_adv_set_data failed: %d", rc);
-            os_mbuf_free_chain(data);
-            return;
-        }
-
-        s_adv_configured = true;
-    }
-
-    rc = ble_gap_ext_adv_start(s_adv_instance, 0, 0);
+    int rc = ble_set_adv_fields();
     if (rc != 0) {
-        ESP_LOGE(TAG, "ble_gap_ext_adv_start failed: %d", rc);
+        ESP_LOGE(TAG, "ble_gap_adv_set_fields failed: %d", rc);
         return;
     }
 
-    ESP_LOGI(TAG, "BLE advertising started: name='%s', phy=coded", kBleDeviceName);
+    struct ble_gap_adv_params params;
+    memset(&params, 0, sizeof(params));
+    params.conn_mode = BLE_GAP_CONN_MODE_UND;
+    params.disc_mode = BLE_GAP_DISC_MODE_GEN;
+
+    rc = ble_gap_adv_start(s_own_addr_type, nullptr, BLE_HS_FOREVER, &params, ble_gap_event_cb, nullptr);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "ble_gap_adv_start failed: %d", rc);
+        return;
+    }
+
+    ESP_LOGI(TAG, "BLE advertising started: name='%s'", kBleDeviceName);
 }
 
 static int ble_gap_event_cb(struct ble_gap_event *event, void *arg)
