@@ -2,6 +2,25 @@
 
 #include <algorithm>
 #include "driver/gpio.h"
+#include "esp_timer.h"
+
+namespace {
+
+void wait_us_precise(uint32_t delay_us)
+{
+  const int64_t start = esp_timer_get_time();
+  while ((esp_timer_get_time() - start) < delay_us)
+  {
+    // Busy-wait to keep 5-baud timing independent of FreeRTOS tick granularity.
+  }
+}
+
+void wait_ms_precise(unsigned long delay_ms)
+{
+  wait_us_precise(static_cast<uint32_t>(delay_ms * 1000UL));
+}
+
+} // namespace
 
 /**
   Function:
@@ -171,7 +190,7 @@ KLineKWP1281Lib::executionStatus KLineKWP1281Lib::attemptConnect(uint8_t module,
     }
 
     // Send a complement to the last byte after a delay.
-    vTaskDelay(pdMS_TO_TICKS(initComplementDelay));
+    wait_ms_precise(initComplementDelay);
     send_complement(keyword_buffer[1]);
     K_LOG_INFO("Connected to module %02X", module);
 
@@ -4209,7 +4228,7 @@ void KLineKWP1281Lib::bitbang_5baud(uint8_t module)
     gpio_set_level((gpio_num_t)_tx_pin, bits[i] ? 1 : 0);
 
     // Wait 200ms after each bit for a speed of 5 baud.
-    vTaskDelay(pdMS_TO_TICKS(200));
+    wait_us_precise(200000);
   }
 }
 
@@ -4643,7 +4662,7 @@ KLineKWP1281Lib::RETURN_TYPE KLineKWP1281Lib::receive_message(size_t *bytes_rece
       }
 
       // Send a complement to the second byte after a delay.
-      vTaskDelay(pdMS_TO_TICKS(initComplementDelay));
+      wait_ms_precise(initComplementDelay);
       send_complement(keyword_buffer[1]);
 
       // Now, the loop will repeat, causing another byte read attempt.
